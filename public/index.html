@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>StudyForge · Flashcards</title>
+
+  <!-- Bootstrap CSS (CDN) -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <!-- Tus estilos -->
+  <link href="/src/styles/main.css" rel="stylesheet" />
+</head>
+<body class="bg-dark text-light">
+
+  <!-- Navbar -->
+    <nav class="navbar navbar-dark border-bottom sticky-top">
+      <div class="container-fluid">
+        <button class="btn btn-outline-light me-2" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebar" aria-controls="sidebar" aria-label="Abrir menú">
+        ☰
+        </button>
+        <a class="navbar-brand fw-bold text-light" href="#">StudyForge</a>
+        <div class="d-flex gap-2 ms-auto">
+        <button id="btnExport" class="btn btn-sm btn-outline-light" type="button">Exportar</button>
+        <label class="btn btn-sm btn-outline-secondary mb-0" for="importFile">Importar
+            <input id="importFile" type="file" accept="application/json" hidden />
+        </label>
+        </div>
+      </div>
+    </nav>
+
+
+  <!-- Sidebar (offcanvas) -->
+  <div class="offcanvas offcanvas-start text-light" tabindex="-1" id="sidebar" aria-labelledby="sidebarLabel">
+    <div class="offcanvas-header">
+      <h5 class="offcanvas-title" id="sidebarLabel">Tus mazos</h5>
+      <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Cerrar"></button>
+    </div>
+    <div class="offcanvas-body d-flex flex-column gap-3">
+      <div class="input-group">
+        <input id="deckName" class="form-control" placeholder="Nombre del mazo" />
+        <button id="addDeck" class="btn btn-primary" type="button">Crear</button>
+      </div>
+      <div id="deckList" class="d-grid gap-2" aria-live="polite"></div>
+      <hr />
+      <div class="small text-muted">
+        Atajos: <kbd>F</kbd> voltear · <kbd>1</kbd> Difícil · <kbd>2</kbd> Duda · <kbd>3</kbd> Fácil
+      </div>
+    </div>
+  </div>
+
+  <!-- Main -->
+  <main class="container py-4">
+
+    <!-- Vista: vacío / sin mazos -->
+    <section id="view-empty" class="text-center py-5 d-none">
+      <h1 class="display-6">Crea tu primer mazo</h1>
+      <p class="text-muted">Abrí el menú ☰, nombrá un mazo y empezá a cargar tarjetas.</p>
+    </section>
+
+    <!-- Vista: mazo seleccionado -->
+    <section id="view-deck" class="d-none" aria-labelledby="deckTitle">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+          <h2 id="deckTitle" class="h4 mb-0">Mazo</h2>
+          <p class="text-muted small mb-0">
+            Tarjetas: <span id="deckCount">0</span> · Hoy: <span id="dueToday">0</span>
+          </p>
+        </div>
+        <div class="d-flex gap-2">
+          <button id="btnAddCard" class="btn btn-success" type="button">Nueva tarjeta</button>
+          <button id="btnStudy" class="btn btn-primary" type="button">Estudiar</button>
+        </div>
+      </div>
+      <div id="cardsGrid" class="row g-3" aria-live="polite"></div>
+    </section>
+
+    <!-- Vista: sesión de estudio -->
+    <section id="view-study" class="d-none" aria-label="Sesión de estudio">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+          <h2 class="h4 mb-0">Sesión de estudio</h2>
+          <p class="text-muted small mb-0">Restantes: <span id="remain">0</span></p>
+        </div>
+        <button id="btnEndStudy" class="btn btn-outline-light" type="button">Terminar</button>
+      </div>
+
+      <div class="card p-3">
+        <div class="flip pointer" id="flip" aria-live="polite" role="button" tabindex="0" aria-pressed="false">
+          <div class="flip-inner">
+            <div class="flip-face">
+              <div class="w-100">
+                <h5 class="text-muted small">Pregunta</h5>
+                <div id="q" class="fs-4"></div>
+                <div id="tags" class="mt-2"></div>
+              </div>
+            </div>
+            <div class="flip-face flip-back">
+              <div class="w-100">
+                <h5 class="text-muted small">Respuesta</h5>
+                <div id="a" class="fs-5"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-3 d-flex gap-2">
+          <button class="btn btn-outline-danger w-25" id="rate0" type="button">1 · Difícil</button>
+          <button class="btn btn-outline-warning w-25" id="rate1" type="button">2 · Duda</button>
+          <button class="btn btn-outline-success w-25" id="rate2" type="button">3 · Fácil</button>
+          <button class="btn btn-secondary ms-auto" id="btnFlip" type="button">Voltear (F)</button>
+        </div>
+
+        <p class="mt-3 small text-muted" id="sugg"></p>
+      </div>
+    </section>
+  </main>
+
+  <!-- Modal: crear/editar tarjeta -->
+  <div class="modal" tabindex="-1" id="cardModal" aria-labelledby="cardModalTitle" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="cardModalTitle">Nueva tarjeta</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        </div>
+        <div class="modal-body">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label" for="inpQ">Pregunta</label>
+              <textarea id="inpQ" class="form-control" rows="4" placeholder="Ej: ¿Qué es una promesa en JS?"></textarea>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label" for="inpA">Respuesta</label>
+              <textarea id="inpA" class="form-control" rows="4" placeholder="Objeto que representa la eventual culminación o fracaso de una operación asíncrona."></textarea>
+            </div>
+            <div class="col-12">
+              <label class="form-label" for="inpTags">Etiquetas (separadas por coma)</label>
+              <input id="inpTags" class="form-control" placeholder="js, asincronía, fundamentos" />
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-outline-secondary" data-bs-dismiss="modal" type="button">Cancelar</button>
+          <button id="saveCard" class="btn btn-primary" type="button">Guardar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Templates -->
+  <template id="tplDeckBtn">
+    <button class="btn btn-outline-light w-100 text-start d-flex justify-content-between align-items-center">
+      <span class="deck-name">—</span>
+      <span class="badge rounded-pill text-bg-primary due">0</span>
+    </button>
+  </template>
+
+  <template id="tplCard">
+    <div class="col-sm-6 col-lg-4">
+      <div class="card hoverable h-100">
+        <div class="card-body d-flex flex-column">
+          <div class="d-flex align-items-start justify-content-between gap-2">
+            <h5 class="card-title flex-grow-1 title">—</h5>
+            <div class="d-flex gap-1">
+              <button class="btn btn-sm btn-outline-secondary btn-edit" type="button">Editar</button>
+              <button class="btn btn-sm btn-outline-danger btn-del" type="button">Borrar</button>
+            </div>
+          </div>
+          <p class="card-text text-muted small mb-2 preview">—</p>
+          <div class="mt-auto">
+            <div class="small text-muted">Próxima: <span class="next">—</span></div>
+            <div class="mt-1 tags"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </template>
+
+  <!-- Bootstrap JS (CDN) -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" defer></script>
+
+  <!-- App como módulo -->
+  <script type="module" src="/src/app.js"></script>
+</body>
+</html>

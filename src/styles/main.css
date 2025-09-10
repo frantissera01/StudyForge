@@ -1,0 +1,111 @@
+:root {
+  --bg: #0b0c10;
+  --fg: #e9ecef;
+  --muted: #9aa0a6;
+
+  --card: #121317;
+  --accent: #0d6efd;
+  --good: #198754;
+  --warn: #ffc107;
+  --bad: #dc3545;
+}
+
+body {
+  background: var(--bg);
+  color: var(--fg);
+}
+
+/* Navbar, sidebar y modales */
+.navbar,
+.offcanvas,
+.modal-content {
+  background: var(--card);
+  color: var(--fg);
+}
+
+/* Inputs */
+.form-control,
+.form-select {
+  background: #0f1115;
+  color: var(--fg);
+  border-color: #2a2e35;
+}
+
+.form-control:focus,
+.form-select:focus {
+  border-color: var(--accent);
+  box-shadow: none;
+}
+
+/* Cards */
+.card {
+  background: var(--card);
+  border: 1px solid #22252c;
+}
+
+.card.hoverable:hover {
+  transform: translateY(-2px);
+  transition: 0.15s ease;
+  border-color: #2f343d;
+}
+
+/* Texto */
+.text-muted {
+  color: var(--muted) !important;
+}
+
+/* Estilo para atajos de teclado */
+.kbd {
+  padding: 0.15rem 0.35rem;
+  border: 1px solid #333;
+  border-bottom-width: 2px;
+  border-radius: 0.25rem;
+  font-variant: all-small-caps;
+  font-weight: 600;
+}
+
+/* Flip card */
+.flip {
+  perspective: 1000px;
+}
+
+.flip-inner {
+  position: relative;
+  width: 100%;
+  min-height: 200px;
+  transition: transform 0.3s;
+  transform-style: preserve-3d;
+}
+
+.flip.flipped .flip-inner {
+  transform: rotateY(180deg);
+}
+
+.flip-face {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.flip-back {
+  transform: rotateY(180deg);
+}
+
+/* Cursor pointer */
+.pointer {
+  cursor: pointer;
+}
+
+/* Tags */
+.tag {
+  background: #1a1f27;
+  border: 1px solid #2a2f37;
+  padding: 0.1rem 0.4rem;
+  border-radius: 0.35rem;
+  margin-right: 0.25rem;
+  font-size: 0.8rem;
+}
