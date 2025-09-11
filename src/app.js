@@ -11,6 +11,35 @@ import { renderDeckView, bindDeckHeader } from "./ui/deckView.js";
 import { bindModal } from "./ui/modals.js";
 import { startStudy, bindStudyUI, endStudy } from "./ui/studyView.js";
 
+
+let deferredPrompt = null;
+
+window.addEventListener("beforeinstallprompt", (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  const btn = document.getElementById("btnInstall");
+  if (btn) btn.classList.remove("d-none");
+});
+
+document.getElementById("btnInstall")?.addEventListener("click", async () => {
+  if (!deferredPrompt) return;
+  deferredPrompt.prompt();
+  const { outcome } = await deferredPrompt.userChoice;
+  console.log("Install prompt:", outcome);
+  deferredPrompt = null;
+  document.getElementById("btnInstall")?.classList.add("d-none");
+});
+
+
+// src/app.js
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker
+    .register("./sw.js") // relativo a /public/
+    .then(() => console.log("Service Worker registrado ✅"))
+    .catch((err) => console.error("SW error:", err));
+}
+
+
 // Import/Export (navbar)
 function exportJSON() {
   const data = JSON.stringify(state, null, 2);
