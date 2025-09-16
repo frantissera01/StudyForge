@@ -5,7 +5,8 @@ import { todayStart } from "../core/storage.js";
 import { deleteCard } from "../core/models.js";
 import { openCardModal } from "./modals.js";
 import { clozeQuestion } from "../core/cloze.js";
-import { filterCards } from "./filters.js";
+import { filterCards, highlightText } from "./filters.js";
+import { refreshTagsDatalist } from "./autocomplete.js";
 
 function previewText(card) {
   if (card.type === "cloze") {
@@ -21,6 +22,8 @@ export function renderDeckView() {
   $("#view-deck").classList.toggle("d-none", !hasDeck);
   $("#view-study").classList.add("d-none");
 
+  refreshTagsDatalist();
+
   if (!hasDeck) return;
 
   const d = deck();
@@ -33,9 +36,9 @@ export function renderDeckView() {
 
   const filtered = filterCards(d.cards);
   filtered.forEach((c) => {
-    const tpl = fromTemplate("tplCard");
-    tpl.querySelector(".title").textContent = c.q.length > 48 ? c.q.slice(0, 48) + "…" : c.q;
-    tpl.querySelector(".preview").textContent = previewText(c);
+    const qShort = c.q.length > 48 ? c.q.slice(0, 48) + "…" : c.q;
+    tpl.querySelector(".title").innerHTML = highlightText(qShort, $("#searchQ")?.value || "");
+    tpl.querySelector(".preview").innerHTML = highlightText(previewText(c), $("#searchQ")?.value || "");
     tpl.querySelector(".next").textContent = fmtDate(c.due);
 
     const tags = tpl.querySelector(".tags");

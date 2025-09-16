@@ -110,7 +110,8 @@
             </select>
           </div>
           <div class="col-6 col-lg-3">
-            <input id="filterTags" class="form-control" placeholder="Etiquetas (coma: js,algos)" />
+            <input id="filterTags" class="form-control" placeholder="Etiquetas (coma: js,algos)" list="tagsList" />
+            <datalist id="tagsList"></datalist>
           </div>
           <div class="col-12 col-lg-2">
             <select id="sortBy" class="form-select">
@@ -222,7 +223,7 @@
             </div>
             <div class="col-12">
               <label class="form-label" for="inpTags">Etiquetas (separadas por coma)</label>
-              <input id="inpTags" class="form-control" placeholder="js, asincronía, fundamentos" />
+              <input id="inpTags" class="form-control" placeholder="js, asincronía, fundamentos" list="tagsList"/>
             </div>
           </div>
         </div>

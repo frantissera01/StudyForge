@@ -5,6 +5,7 @@ import { todayStart } from "../core/storage.js";
 import { schedule, suggestion } from "../core/scheduler.js";
 import { clozeQuestion, clozeAnswer } from "../core/cloze.js";
 import { renderMD } from "./markdown.js";
+import { highlightText } from "./filters.js";
 
 let studyQueue = [];
 let current = null;
@@ -29,14 +30,24 @@ function showTags(list) {
 function renderQA(card) {
   const qEl = $("#q");
   const aEl = $("#a");
+  const query = $("#searchQ")?.value || "";
+
   if (card.type === "cloze") {
+    // Renderizamos MD a HTML y luego aplicamos highlight sobre el HTML plano.
     renderMD(qEl, clozeQuestion(card.q));
-    renderMD(aEl, clozeAnswer(card.q)); // respuesta se deriva del cloze
+    renderMD(aEl, clozeAnswer(card.q));
   } else {
     renderMD(qEl, card.q);
     renderMD(aEl, card.a);
   }
+
+  // Aplicar resaltado textual simple (no rompe el HTML renderizado de KaTeX/MD)
+  if (query) {
+    qEl.innerHTML = highlightText(qEl.innerHTML, query);
+    aEl.innerHTML = highlightText(aEl.innerHTML, query);
+  }
 }
+
 
 /** Carga la siguiente tarjeta o termina la sesión. */
 function nextCard(endStudyCb) {

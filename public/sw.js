@@ -25,6 +25,7 @@ const PRECACHE_URLS = [
   "/src/ui/deckView.js",
   "/src/ui/modals.js",
   "/src/ui/statsView.js",
+  "/src/ui/autocomplete.js",
   "/src/ui/studyView.js"
 ];
 

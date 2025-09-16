@@ -109,3 +109,10 @@ body {
   margin-right: 0.25rem;
   font-size: 0.8rem;
 }
+
+/* Resaltado de coincidencias (búsqueda/cloze) */
+mark.sf-hl {
+  padding: 0 .15em;
+  background: rgba(13, 110, 253, .25);
+  border-radius: .25rem;
+}

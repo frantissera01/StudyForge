@@ -76,3 +76,17 @@ export function setQuery(q) { state.q = (q || "").toLowerCase(); }
 export function setTags(arr) { state.tags = (arr || []).map(s => s.toLowerCase()); }
 export function setDue(v) { state.due = v; }
 export function setSort(v) { state.sortBy = v; }
+
+/** Escape para usar en RegExp */
+function escRe(s) { return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"); }
+
+/** Envuelve coincidencias de `q` en <mark class="sf-hl">...</mark> */
+export function highlightText(text, q) {
+  if (!q) return text;
+  try {
+    const re = new RegExp(`(${escRe(q)})`, "ig");
+    return text.replace(re, '<mark class="sf-hl">$1</mark>');
+  } catch {
+    return text;
+  }
+}

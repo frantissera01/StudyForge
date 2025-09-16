@@ -2,6 +2,7 @@
 import { $, setText } from "./dom.js";
 import { deck } from "../core/state.js";
 import { createCard, updateCard } from "../core/models.js";
+import { refreshTagsDatalist } from "./autocomplete.js";
 
 // Instancia Bootstrap Modal (desde CDN) una vez
 let cardModal = null;
@@ -29,6 +30,8 @@ export function openCardModal(cardId = null) {
   $("#inpQ").value = c?.q || "";
   $("#inpA").value = c?.a || "";
   $("#inpTags").value = (c?.tags || []).join(", ");
+
+  refreshTagsDatalist();
 
   cardModal.show();
 }
