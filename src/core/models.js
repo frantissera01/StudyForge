@@ -50,18 +50,19 @@ export function dueCount(deckId) {
  * Estructura de Card:
  * { id, q, a, tags[], created, last, due, ease, interval, reps }
  */
-export function createCard({ q, a, tags = [] }) {
+export function createCard({ q, a, tags = [], type = "basic" }) {
   const d = deck();
   if (!d) throw new Error("No hay mazo activo.");
   const card = {
     id: uuid(),
+    type,                                  // 👈 nuevo
     q: String(q || "").trim(),
-    a: String(a || "").trim(),
+    a: String(a ?? "").trim(),
     tags: tags.map(t => String(t).trim()).filter(Boolean),
     created: Date.now(),
     last: 0,
-    due: todayStart(),       // disponible hoy
-    ease: 2.5,               // SM-2 base
+    due: todayStart(),
+    ease: 2.5,
     interval: 0,
     reps: 0,
   };
@@ -71,14 +72,13 @@ export function createCard({ q, a, tags = [] }) {
 }
 
 export function updateCard(cardId, patch) {
-  const d = deck();
-  if (!d) return;
-  const i = d.cards.findIndex(c => c.id === cardId);
-  if (i < 0) return;
+  const d = deck(); if (!d) return;
+  const i = d.cards.findIndex(c => c.id === cardId); if (i < 0) return;
   const prev = d.cards[i];
   d.cards[i] = {
     ...prev,
     ...patch,
+    type: patch.type ?? prev.type,        // 👈 conservar tipo
     q: patch.q !== undefined ? String(patch.q).trim() : prev.q,
     a: patch.a !== undefined ? String(patch.a).trim() : prev.a,
     tags: patch.tags !== undefined
@@ -87,7 +87,6 @@ export function updateCard(cardId, patch) {
   };
   save();
 }
-
 export function deleteCard(cardId) {
   const d = deck();
   if (!d) return;

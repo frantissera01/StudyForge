@@ -10,6 +10,8 @@ import { renderSidebar, bindSidebar } from "./ui/sidebar.js";
 import { renderDeckView, bindDeckHeader } from "./ui/deckView.js";
 import { bindModal } from "./ui/modals.js";
 import { startStudy, bindStudyUI, endStudy } from "./ui/studyView.js";
+import { renderStats } from "./ui/statsView.js";
+import { bindFilters } from "./ui/filters.js";
 
 
 let deferredPrompt = null;
@@ -74,6 +76,17 @@ function bindNavbarIO() {
   $("#importFile")?.addEventListener("change", (e) => importJSON(e.target.files[0]));
 }
 
+function bindStatsButtons() {
+  $("#btnStats")?.addEventListener("click", () => {
+    renderStats();
+  });
+  $("#btnBackFromStats")?.addEventListener("click", () => {
+    // volver al mazo
+    hide($("#view-stats"));
+    show($("#view-deck"));
+  });
+}
+
 // Render maestro
 function renderAll() {
   renderSidebar(renderAll);
@@ -96,6 +109,8 @@ function init() {
   bindDeckHeader(() => startStudy(renderAll));
   bindModal(renderAll);
   bindStudyUI(renderAll);
+  bindStatsButtons();
+  bindFilters(renderAll);
 
   // Primer render
   renderAll();

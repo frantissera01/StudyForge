@@ -10,7 +10,8 @@ export const storeKey = 'studyforge.v1';
  * decks: { [deckId]: { id, name, created, cards: Card[] } }
  * currentDeck: string | null
  */
-export const emptyState = { decks: {}, currentDeck: null };
+
+export const emptyState = { decks: {}, currentDeck: null, logs: [] };
 
 /**
  * Estado en memoria (mutable)
@@ -23,9 +24,14 @@ export let state = load();
 export function load() {
   try {
     const raw = localStorage.getItem(storeKey);
-    return raw ? JSON.parse(raw) : structuredClone(emptyState);
+    const parsed = raw ? JSON.parse(raw) : structuredClone(emptyState);
+    // normalizar logs si no existen
+    if (!Array.isArray(parsed.logs)) parsed.logs = [];
+    state = parsed;
+    return state;
   } catch {
-    return structuredClone(emptyState);
+    state = structuredClone(emptyState);
+    return state;
   }
 }
 

@@ -1,8 +1,10 @@
 // src/ui/studyView.js
-import { $, clear, setText, setHTML } from "./dom.js";
-import { deck, save } from "../core/state.js";
+import { $, clear, setText } from "./dom.js";
+import { state, deck, save } from "../core/state.js";
 import { todayStart } from "../core/storage.js";
 import { schedule, suggestion } from "../core/scheduler.js";
+import { clozeQuestion, clozeAnswer } from "../core/cloze.js";
+import { renderMD } from "./markdown.js";
 
 let studyQueue = [];
 let current = null;
@@ -24,23 +26,30 @@ function showTags(list) {
   });
 }
 
+function renderQA(card) {
+  const qEl = $("#q");
+  const aEl = $("#a");
+  if (card.type === "cloze") {
+    renderMD(qEl, clozeQuestion(card.q));
+    renderMD(aEl, clozeAnswer(card.q)); // respuesta se deriva del cloze
+  } else {
+    renderMD(qEl, card.q);
+    renderMD(aEl, card.a);
+  }
+}
+
 /** Carga la siguiente tarjeta o termina la sesión. */
 function nextCard(endStudyCb) {
   current = studyQueue.shift();
   if (!current) return endStudyCb();
 
   setText($("#remain"), studyQueue.length + 1);
-  setHTML($("#q"), current.q);
-  setHTML($("#a"), current.a);
+  renderQA(current);
   showTags(current.tags);
   setText($("#sugg"), suggestion(current));
   setFlipped(false);
 }
 
-/**
- * Inicia una sesión de estudio con las tarjetas vencidas (due <= hoy).
- * @param {Function} onEnd - callback cuando no quedan tarjetas
- */
 export function startStudy(onEnd) {
   const d = deck();
   if (!d) return;
@@ -51,39 +60,36 @@ export function startStudy(onEnd) {
     alert("No hay tarjetas para hoy 🎉");
     return;
   }
-
-  // Cambiar vista
   $("#view-deck").classList.add("d-none");
   $("#view-study").classList.remove("d-none");
-
   nextCard(() => endStudy(onEnd));
 }
 
-/** Califica la tarjeta actual y pasa a la siguiente. */
 function rate(quality, onEnd) {
   schedule(current, quality);
 
-  // Si es difícil, reinsertar para hoy
   if (quality === 0) {
     current.due = todayStart();
     studyQueue.push(current);
   }
 
+  // LOG
+  const d = deck();
+  try {
+    state.logs ||= [];
+    state.logs.push({ ts: Date.now(), cardId: current.id, deckId: d?.id || null, quality });
+  } catch {}
+
   save();
   nextCard(() => endStudy(onEnd));
 }
 
-/** Finaliza la sesión y vuelve a la vista de mazo */
 export function endStudy(onEnd) {
   $("#view-study").classList.add("d-none");
   $("#view-deck").classList.remove("d-none");
-  onEnd?.(); // típico: volver a renderDeckView()
+  onEnd?.();
 }
 
-/**
- * Bindea la UI de estudio (botones, flip, atajos).
- * @param {Function} onEnd - callback al terminar sesión (re-render mazo)
- */
 export function bindStudyUI(onEnd) {
   const flip = $("#flip");
   $("#btnEndStudy")?.addEventListener("click", () => endStudy(onEnd));
@@ -91,23 +97,17 @@ export function bindStudyUI(onEnd) {
   flip?.addEventListener("click", () => setFlipped(!flip.classList.contains("flipped")));
   flip?.addEventListener("keydown", (e) => {
     const k = e.key.toLowerCase();
-    if (k === "enter" || k === " ") {
-      e.preventDefault();
-      setFlipped(!flip.classList.contains("flipped"));
-    }
+    if (k === "enter" || k === " ") { e.preventDefault(); setFlipped(!flip.classList.contains("flipped")); }
   });
 
   $("#rate0")?.addEventListener("click", () => rate(0, onEnd));
   $("#rate1")?.addEventListener("click", () => rate(1, onEnd));
   $("#rate2")?.addEventListener("click", () => rate(2, onEnd));
 
-  // Atajos
   window.addEventListener("keydown", (e) => {
     const t = e.target;
-    const inField =
-      t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.isContentEditable);
+    const inField = t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.isContentEditable);
     if (inField) return;
-
     const k = e.key.toLowerCase();
     if (k === "f") $("#btnFlip")?.click();
     if (k === "1") $("#rate0")?.click();
