@@ -1,6 +1,7 @@
 // src/ui/statsView.js
 import { state } from "../core/state.js";
 import { $, show, hide } from "./dom.js";
+import { renderHeatmap } from "./heatmap.js";
 
 let perDayChart = null;
 let qualityChart = null;
@@ -56,6 +57,7 @@ export function renderStats() {
   hide($("#view-study"));
   hide($("#view-empty"));
   show($("#view-stats"));
+  renderHeatmap();
 
   // Dataset
   const labels = lastNDaysLabels(30);

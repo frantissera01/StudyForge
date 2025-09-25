@@ -92,6 +92,10 @@ function rate(quality, onEnd) {
   } catch {}
 
   save();
+  if (!document.getElementById("view-stats")?.classList.contains("d-none")) {
+    // Está abierta la vista de estadísticas; refrescar heatmap si existe
+    import("./statsView.js").then(m => m.renderStats?.());
+  }
   nextCard(() => endStudy(onEnd));
 }
 
